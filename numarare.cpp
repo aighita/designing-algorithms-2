@@ -3,86 +3,87 @@
 #include <vector>
 #include <stack>
 #include <algorithm>
+#include <set>
+#include <utility>
+
 #define MOD 1000000007
 
 using namespace std;
 
-ifstream fin("numarare.inn");
-ofstream fout("numarare.outt");
+ifstream fin("numarare.in");
+ofstream fout("numarare.out");
 
-void topological_sort(int node, vector<vector<int>>& adj,
-                    vector<bool>& visited, stack<int>& st) {
-    visited[node] = true;
-    for (int neighbor : adj[node]) {
-        if (!visited[neighbor]) {
-            topological_sort(neighbor, adj, visited, st);
+int N, M;
+
+vector<vector<int>> findCommonEdges(vector<vector<int>> &graph1_adj,
+                                    vector<vector<int>> &graph2_adj,
+                                    int N) {
+    vector<vector<bool>> graph1_edges(N + 1, vector<bool>(N + 1, false));
+    vector<vector<int>> commonGraph(N + 1);
+
+    for (int u = 1; u <= N; ++u) {
+        for (int v : graph1_adj[u]) {
+            graph1_edges[u][v] = true;
         }
     }
-    st.push(node);
+
+    for (int u = 1; u <= N; ++u) {
+        for (int v : graph2_adj[u]) {
+            if (graph1_edges[u][v]) {
+                commonGraph[u].push_back(v);
+            }
+        }
+    }
+
+    return commonGraph;
 }
 
-vector<long long> count_paths(int N, vector<vector<int>>& adj) {
-    stack<int> st;
-    vector<bool> visited(N + 1, false);
-    for (int i = 1; i <= N; ++i) {
-        if (!visited[i]) {
-            topological_sort(i, adj, visited, st);
+void printGraph(vector<vector<int>>& graph) {
+    int N = graph.size();
+    for (int u = 1; u < N; ++u) {
+        for (int v : graph[u]) {
+            cout << u << " " << v << endl;
+        }
+    }
+}
+
+int find_all_paths_1_to_N(vector<vector<int>>& graph) {
+    vector<int> DP(N + 1);
+
+    DP[1] = 1;
+    for (int u = 1; u < N; ++u) {
+        for (int v : graph[u]) {
+            DP[v] += DP[u];
+            DP[v] %= MOD;
         }
     }
 
-    vector<long long> dp(N + 1, 0);
-    dp[1] = 1;
-
-    while (!st.empty()) {
-        int u = st.top();
-        st.pop();
-        for (int v : adj[u]) {
-            dp[v] = (dp[v] + dp[u]) % MOD;
-        }
-    }
-
-    return dp;
+    return DP[N];
 }
 
 int main() {
-    int N, M;
     fin >> N >> M;
 
-    vector<vector<int>> adj1(N + 1), adj2(N + 1);
+    vector<vector <int>> graph1_adj(N + 1);
+    vector<vector <int>> graph2_adj(N + 1);
 
-    for (int i = 0; i < M; ++i) {
-        int x, y;
+    int x, y;
+    for (int i = 1; i <= M; i++) {
         fin >> x >> y;
-        adj1[x].push_back(y);
+        graph1_adj[x].push_back(y);
     }
 
-    for (int i = 0; i < M; ++i) {
-        int x, y;
+    for (int i = 1; i <= M; i++) {
         fin >> x >> y;
-        adj2[x].push_back(y);
+        graph2_adj[x].push_back(y);
     }
 
-    vector<long long> dp1 = count_paths(N, adj1);
-    vector<long long> dp2 = count_paths(N, adj2);
+    vector<vector<int>> common_graph = findCommonEdges(graph1_adj,
+                                                        graph2_adj, N);
+    // printGraph(common_graph);
 
-    long long common_paths = 0;
-    for (int i = 1; i <= N; ++i) {
-        if (dp1[i] == dp2[i] && dp1[i] > 0) {
-            common_paths = (common_paths + dp1[i]) % MOD;
-        }
-    }
-
-    // for (int i = 1; i <= N; ++i) {
-    //     if (dp1[i] == dp2[i] && dp1[i] > 0) {
-    //         common_paths = (common_paths + dp1[i]) % MOD;
-    //     }
-    // }
-
-    fout << common_paths << endl;
-
-    for (int i = 1; i <= N; ++i) {
-        fout << dp1[i] <<  " " << dp2[i] << endl;
-    }
+    int paths = find_all_paths_1_to_N(common_graph);
+    fout << paths << endl;
 
     return 0;
 }

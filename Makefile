@@ -5,26 +5,29 @@ CCFLAGS = -Wall -Wextra -std=c++17 -O0 -lm
 
 .PHONY: build clean
 
-build: numarare trenuri
+build: numarare trenuri drumuri scandal
 
 run-p1:
 	./numarare
 run-p2:
 	./trenuri
 run-p3:
-	./p3
+	./drumuri
 run-p4:
-	./p4
+	./scandal
 
 numarare: numarare.cpp
 	$(CC) -o $@ $^ $(CCFLAGS)
 trenuri: trenuri.cpp
 	$(CC) -o $@ $^ $(CCFLAGS)
-p3: p3.cpp
+drumuri: drumuri.cpp
 	$(CC) -o $@ $^ $(CCFLAGS)
-p4: p4.cpp
+scandal: scandal.cpp
 	$(CC) -o $@ $^ $(CCFLAGS)
+
+run-scandal:
+	./scandal
 
 # Vom șterge executabilele.
 clean:
-	rm -f numarare trenuri
+	rm -f numarare trenuri drumuri scandal
